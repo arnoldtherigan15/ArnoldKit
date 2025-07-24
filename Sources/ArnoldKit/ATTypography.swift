@@ -7,9 +7,10 @@
 
 import CoreText
 import UIKit
+import SwiftUI
 
-public enum ATypography {
-    public enum BBFont: String, CaseIterable {
+public enum ATTypography {
+    public enum ATFont: String, CaseIterable {
         case poppins = "Poppins"
     }
     
@@ -47,20 +48,20 @@ public enum ATypography {
         case .heading(_, let type):
             switch type {
             case .bold:
-                return "\(BBFont.poppins.rawValue)-ExtraBold"
+                return "\(ATFont.poppins.rawValue)-ExtraBold"
             case .regular :
-                return "\(BBFont.poppins.rawValue)-Bold"
+                return "\(ATFont.poppins.rawValue)-Bold"
             default:
-                return "\(BBFont.poppins.rawValue)-Bold"
+                return "\(ATFont.poppins.rawValue)-Bold"
             }
         case .text(_, let type):
             switch type {
             case .bold:
-                return "\(BBFont.poppins.rawValue)-ExtraBold"
+                return "\(ATFont.poppins.rawValue)-ExtraBold"
             case .regular :
-                return "\(BBFont.poppins.rawValue)-SemiBold"
+                return "\(ATFont.poppins.rawValue)-SemiBold"
             default:
-                return "\(BBFont.poppins.rawValue)-Regular"
+                return "\(ATFont.poppins.rawValue)-Regular"
             }
         }
     }
@@ -71,7 +72,7 @@ public enum ATypography {
 
     /// the italic version of the font.
     public var italicFont: UIFont {
-        let italicFontName = ATypographyLoader.getItalicFontVersionName(fontName: fontName)
+        let italicFontName = ATTypographyLoader.getItalicFontVersionName(fontName: fontName)
         return .init(name: italicFontName, size: self.size) ?? .init()
     }
 
@@ -155,36 +156,50 @@ public enum ATypography {
 }
 
 
-public final class ATypographyLoader {
+public final class ATTypographyLoader {
     public static func getBundle() -> Bundle {
         return Bundle(for: self)
     }
-    private static func registerFont(withName name: String, fileExtension: String) {
-        let frameworkBundle = self.getBundle()
-        if
-            let pathForResourceString = frameworkBundle.path(forResource: name, ofType: fileExtension),
-            let fontData = NSData(contentsOfFile: pathForResourceString),
-            let dataProvider = CGDataProvider(data: fontData),
-            let fontRef = CGFont(dataProvider)
-        {
-            var errorRef: Unmanaged<CFError>?
-            if CTFontManagerRegisterGraphicsFont(fontRef, &errorRef) == false {
-                print("Error registering font")
-            }
-        } else {
-            print("font not found in bundle/ font \(name) is not supported yet")
+//    private static func registerFont(withName name: String, fileExtension: String) {
+//        let frameworkBundle = self.getBundle()
+//        if
+//            let pathForResourceString = frameworkBundle.path(forResource: name, ofType: fileExtension),
+//            let fontData = NSData(contentsOfFile: pathForResourceString),
+//            let dataProvider = CGDataProvider(data: fontData),
+//            let fontRef = CGFont(dataProvider)
+//        {
+//            var errorRef: Unmanaged<CFError>?
+//            if CTFontManagerRegisterGraphicsFont(fontRef, &errorRef) == false {
+//                print("Error registering font")
+//            }
+//        } else {
+//            print("font not found in bundle/ font \(name) is not supported yet")
+//        }
+//        
+//        
+//    }
+    
+    private static func registerFont(bundle: Bundle, fontName: String, fontExtension: String) {
+        guard let fontURL = bundle.url(forResource: fontName, withExtension: fontExtension),
+              let fontDataProvider = CGDataProvider(url: fontURL as CFURL),
+              let font = CGFont(fontDataProvider) else {
+            fatalError("error")
         }
+        var error: Unmanaged<CFError>?
+        CTFontManagerRegisterGraphicsFont(font, &error)
     }
 
     public static func loadFonts() {
-        for fontName in ATypography.BBFont.allCases {
-            for type in ATypography.StrengthTypes.allCases {
-                let originalFontName = "\(fontName.rawValue)-\(type.rawValue)"
-                let italicFontName = self.getItalicFontVersionName(fontName: originalFontName)
-                registerFont(withName: originalFontName, fileExtension: "ttf")
-                registerFont(withName: italicFontName, fileExtension: "ttf")
-            }
-        }
+//        for fontName in ATTypography.ATFont.allCases {
+//            for type in ATTypography.StrengthTypes.allCases {
+//                let originalFontName = "\(fontName.rawValue)-\(type.rawValue)"
+//                let italicFontName = self.getItalicFontVersionName(fontName: originalFontName)
+//                registerFont(withName: originalFontName, fileExtension: "ttf")
+//                registerFont(withName: italicFontName, fileExtension: "ttf")
+//            }
+//        }
+        registerFont(bundle: .module, fontName: "Poppins-Bold", fontExtension: "ttf")
+        registerFont(bundle: .module, fontName: "PoiretOne-Regular", fontExtension: "ttf")
     }
 
     public static func getItalicFontVersionName(fontName: String) -> String {
